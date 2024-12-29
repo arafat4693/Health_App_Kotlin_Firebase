@@ -14,6 +14,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.ViewModelProvider
 import com.example.myhealth.ui.theme.MyHealthTheme
 import com.example.myhealth.viewModels.AuthenticationViewModel
+import com.example.myhealth.viewModels.WaterTrackerViewModel
 import com.example.myhealth.views.AppNavigation
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -33,7 +34,8 @@ class MainActivity : ComponentActivity() {
                 }
             }*/
             val viewModel = ViewModelProvider(this)[AuthenticationViewModel::class.java]
-            AppNavigation(viewModel)
+            val waterTrackerViewModel = ViewModelProvider(this)[WaterTrackerViewModel::class.java]
+            AppNavigation(viewModel, waterTrackerViewModel)
         }
     }
 }
