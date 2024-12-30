@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.ViewModelProvider
+import com.example.myhealth.repositories.HealthConnectRepository
 import com.example.myhealth.ui.theme.MyHealthTheme
 import com.example.myhealth.viewModels.AuthenticationViewModel
 import com.example.myhealth.views.AppNavigation
@@ -20,18 +21,16 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @Inject
+    lateinit var healthConnectRepository: HealthConnectRepository
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        healthConnectRepository.initializePermissionLauncher(this)
+
         enableEdgeToEdge()
         setContent {
-            /*MyHealthTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
-            }*/
             val viewModel = ViewModelProvider(this)[AuthenticationViewModel::class.java]
             AppNavigation(viewModel)
         }

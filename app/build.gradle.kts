@@ -13,7 +13,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.myhealth"
-        minSdk = 24
+        minSdk = 34
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -62,6 +62,7 @@ dependencies {
 
     implementation("com.google.dagger:hilt-android:2.51.1")
     kapt("com.google.dagger:hilt-android-compiler:2.51.1")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
     implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
 
@@ -72,6 +73,10 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
 
     implementation("androidx.navigation:navigation-compose:2.8.5")
+
+    implementation("androidx.health.connect:connect-client:1.1.0-alpha10")
+
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.23")
 }
 
 // Allow references to generated code

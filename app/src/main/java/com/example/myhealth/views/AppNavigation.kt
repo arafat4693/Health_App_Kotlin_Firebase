@@ -41,7 +41,7 @@ fun AppNavigation(viewModel: AuthenticationViewModel) {
             )
         }
         composable(Screen.Home.route) {
-            HomeScreen()
+            HomeScreen(authViewModel = viewModel)
         }
     }
 }
