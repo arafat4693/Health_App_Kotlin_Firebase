@@ -42,8 +42,9 @@ class AuthenticationViewModel @Inject constructor(
             }
     }
 
-    fun logout() {
+    fun logout(onSuccess: () -> Unit) {
         firebaseAuth.signOut()
         isUserLoggedIn.value = false
+        onSuccess()
     }
 }
