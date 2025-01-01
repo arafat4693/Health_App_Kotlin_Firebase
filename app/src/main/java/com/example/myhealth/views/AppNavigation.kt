@@ -11,6 +11,7 @@ sealed class Screen(val route: String) {
     object Login : Screen("login")
     object Register : Screen("register")
     object Home : Screen("home")
+    object Goals : Screen("goals")
 }
 
 @Composable
@@ -41,7 +42,11 @@ fun AppNavigation(viewModel: AuthenticationViewModel) {
             )
         }
         composable(Screen.Home.route) {
-            HomeScreen(authViewModel = viewModel)
+            HomeScreen(authViewModel = viewModel, toGoalsSettings = { navController.navigate(Screen.Goals.route) })
+        }
+
+        composable(Screen.Goals.route) {
+            GoalsSettingsScreen(onNavigateBack = { navController.navigate(Screen.Home.route) })
         }
     }
 }

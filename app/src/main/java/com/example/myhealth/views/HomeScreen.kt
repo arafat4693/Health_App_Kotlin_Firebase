@@ -40,7 +40,8 @@ import kotlin.math.roundToInt
 @Composable
 fun HomeScreen(
     viewModel: HealthViewModel = hiltViewModel(),
-    authViewModel: AuthenticationViewModel
+    authViewModel: AuthenticationViewModel,
+    toGoalsSettings: () -> Unit
 ) {
     val healthData by viewModel.healthData.collectAsState()
     val permissionsGranted by viewModel.permissionsGranted.collectAsState()
@@ -81,6 +82,10 @@ fun HomeScreen(
             PermissionRequest(viewModel)
         } else {
             Column {
+                healthData.firstOrNull()?.let { latestData ->
+                    StreakDisplay(streak = latestData.streak, toGoalsSettings = toGoalsSettings)
+                }
+
                 // Development/testing
                 //if (BuildConfig.DEBUG) {  // Only show in debug builds
                     Button(
@@ -167,6 +172,41 @@ fun HealthDataDisplay(healthData: List<HealthData>) {
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun StreakDisplay(streak: Int, toGoalsSettings: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Current Streak",
+                style = MaterialTheme.typography.titleMedium
+            )
+            Text(
+                text = "$streak days",
+                style = MaterialTheme.typography.headlineLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text = "Complete goals before midnight to maintain streak!",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.secondary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+            Button (onClick = { toGoalsSettings() }) {
+                Text("Settings")
             }
         }
     }
