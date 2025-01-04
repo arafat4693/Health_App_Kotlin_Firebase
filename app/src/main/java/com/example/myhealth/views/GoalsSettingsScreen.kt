@@ -35,12 +35,14 @@ fun GoalsSettingsScreen(
 ) {
     var stepsGoal by remember { mutableStateOf("") }
     var caloriesGoal by remember { mutableStateOf("") }
+    var waterGlassesGoal by remember { mutableStateOf("") }
 
     val currentGoals by viewModel.userGoals.collectAsState()
 
     LaunchedEffect(currentGoals) {
         stepsGoal = currentGoals.stepsGoal.toString()
         caloriesGoal = currentGoals.caloriesGoal.toString()
+        waterGlassesGoal = currentGoals.waterGlassesGoal.toString()
     }
 
     Column (
@@ -77,11 +79,22 @@ fun GoalsSettingsScreen(
                 .padding(vertical = 8.dp)
         )
 
+        OutlinedTextField(
+            value = waterGlassesGoal,
+            onValueChange = { waterGlassesGoal = it },
+            label = { Text("Daily Waters Goal") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
+        )
+
         Button(
             onClick = {
                 viewModel.saveUserGoals(
                     stepsGoal.toLongOrNull() ?: 0,
-                    caloriesGoal.toDoubleOrNull() ?: 0.0
+                    caloriesGoal.toDoubleOrNull() ?: 0.0,
+                    waterGlassesGoal.toIntOrNull() ?: 0
                 )
                 onNavigateBack()
             },

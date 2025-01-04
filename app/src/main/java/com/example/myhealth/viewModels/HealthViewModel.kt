@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -17,6 +18,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import javax.inject.Inject
+import kotlin.coroutines.resume
 
 @HiltViewModel
 class HealthViewModel @Inject constructor(
@@ -46,9 +48,9 @@ class HealthViewModel @Inject constructor(
         }
     }
 
-    fun saveUserGoals(stepsGoal: Long, caloriesGoal: Double) {
-        healthRepository.saveUserGoals(stepsGoal, caloriesGoal) {
-            _userGoals.value = UserGoals(stepsGoal, caloriesGoal)
+    fun saveUserGoals(stepsGoal: Long, caloriesGoal: Double, waterGlassesGoal: Int) {
+        healthRepository.saveUserGoals(stepsGoal, caloriesGoal, waterGlassesGoal) {
+            _userGoals.value = UserGoals(stepsGoal, caloriesGoal, waterGlassesGoal)
             // Refresh health data to update streak calculations
             // fetchAndSaveHealthData()
         }
@@ -98,18 +100,20 @@ class HealthViewModel @Inject constructor(
     private fun calculateStreak(
         currentSteps: Long,
         currentCalories: Double,
+        currentWaterGlasses: Int,
         previousData: HealthData?,
         todayData: HealthData?
     ): Pair<Int, Long?> {
         // if already completed today goal
         Log.d("HealthViewModel", _healthData.value.toString())
         Log.d("HealthViewModel", _userGoals.value.toString())
+        Log.d("HealthViewModel", currentWaterGlasses.toString())
 
         if(todayData?.goalsCompletedTimestamp != null) return Pair(todayData.streak, todayData.goalsCompletedTimestamp)
         Log.d("HealthViewModel", "Inside")
 
         val goals = _userGoals.value
-        val goalsCompleted = currentSteps >= goals.stepsGoal && currentCalories >= goals.caloriesGoal
+        val goalsCompleted = currentSteps >= goals.stepsGoal && currentCalories >= goals.caloriesGoal && currentWaterGlasses >= goals.waterGlassesGoal
 
         if (!goalsCompleted) {
             return Pair(0, null)
@@ -136,18 +140,22 @@ class HealthViewModel @Inject constructor(
             _isLoading.value = true
 
             try{
+                val dateFormatter = DateTimeFormatter.ISO_LOCAL_DATE
+                val today = LocalDate.now().format(dateFormatter)
+                val previousDay = LocalDate.now().minusDays(1).format(dateFormatter)
+
                 val endTime = Instant.now()
                 val startTime = endTime.minus(1, ChronoUnit.DAYS)
 
                 val steps = healthConnectManager.readDailySteps(startTime, endTime)
                 val calories = healthConnectManager.readDailyCalories(startTime, endTime)
+                val waterGlasses = healthRepository.getWaterGlassesSuspend(today)
 
                 val totalSteps = steps.sumOf { it.count }
                 val totalCalories = calories.sumOf { it.energy.inCalories }
+                val totalWaterGlasses = waterGlasses.size
 
-                val dateFormatter = DateTimeFormatter.ISO_LOCAL_DATE
-                val today = LocalDate.now().format(dateFormatter)
-                val previousDay = LocalDate.now().minusDays(1).format(dateFormatter)
+                Log.d("glasses", totalWaterGlasses.toString())
 
                 // Get today's and previous day's data
                 val todayData = _healthData.value.find { it.date == today }
@@ -157,6 +165,7 @@ class HealthViewModel @Inject constructor(
                 val (newStreak, completionTimestamp) = calculateStreak(
                     totalSteps,
                     totalCalories,
+                    totalWaterGlasses,
                     previousData,
                     todayData
                 )
@@ -214,5 +223,6 @@ data class HealthData(
 
 data class UserGoals(
     val stepsGoal: Long,
-    val caloriesGoal: Double
+    val caloriesGoal: Double,
+    val waterGlassesGoal: Int = 8  // Default 8 glasses
 )

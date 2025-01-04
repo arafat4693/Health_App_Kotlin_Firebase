@@ -2,12 +2,15 @@ package com.example.myhealth.repositories
 
 import com.example.myhealth.viewModels.HealthData
 import com.example.myhealth.viewModels.UserGoals
+import com.example.myhealth.viewModels.WaterGlass
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import kotlinx.coroutines.suspendCancellableCoroutine
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.coroutines.resume
 
 @Singleton
 class HealthRepository @Inject constructor(
@@ -67,12 +70,13 @@ class HealthRepository @Inject constructor(
             }
     }
 
-    fun saveUserGoals(stepsGoal: Long, caloriesGoal: Double, onSuccess: () -> Unit) {
+    fun saveUserGoals(stepsGoal: Long, caloriesGoal: Double, waterGlassesGoal: Int, onSuccess: () -> Unit) {
         val userId = firebaseAuth.currentUser?.uid ?: return
 
         val goals = hashMapOf(
             "stepsGoal" to stepsGoal,
-            "caloriesGoal" to caloriesGoal
+            "caloriesGoal" to caloriesGoal,
+            "waterGlassesGoal" to waterGlassesGoal
         )
 
         firestore.collection("users")
@@ -94,9 +98,65 @@ class HealthRepository @Inject constructor(
             .addOnSuccessListener { document ->
                 val goals = UserGoals(
                     stepsGoal = document.getLong("stepsGoal") ?: 0,
-                    caloriesGoal = document.getDouble("caloriesGoal") ?: 0.0
+                    caloriesGoal = document.getDouble("caloriesGoal") ?: 0.0,
+                    waterGlassesGoal = document.getLong("waterGlassesGoal")?.toInt() ?: 8
                 )
                 onSuccess(goals)
             }
     }
+
+    fun saveWaterGlass(date: String, timestamp: Long, onSuccess: () -> Unit) {
+        val userId = firebaseAuth.currentUser?.uid ?: return
+
+        val waterGlass = hashMapOf(
+            "date" to date,
+            "timestamp" to timestamp
+        )
+
+        firestore.collection("users")
+            .document(userId)
+            .collection("water_glasses")
+            .add(waterGlass)
+            .addOnSuccessListener { onSuccess() }
+    }
+
+    fun deleteWaterGlass(glassId: String, onSuccess: () -> Unit) {
+        val userId = firebaseAuth.currentUser?.uid ?: return
+
+        firestore.collection("users")
+            .document(userId)
+            .collection("water_glasses")
+            .document(glassId)
+            .delete()
+            .addOnSuccessListener { onSuccess() }
+    }
+
+    fun getWaterGlasses(date: String, onSuccess: (List<WaterGlass>) -> Unit) {
+        val userId = firebaseAuth.currentUser?.uid ?: return
+
+        firestore.collection("users")
+            .document(userId)
+            .collection("water_glasses")
+            .whereEqualTo("date", date)
+            .get()
+            .addOnSuccessListener { documents ->
+                val waterGlasses = documents.mapNotNull { doc ->
+                    doc.getLong("timestamp")?.let { timestamp ->
+                        WaterGlass(
+                            id = doc.id,
+                            timestamp = timestamp,
+                            date = date
+                        )
+                    }
+                }
+                onSuccess(waterGlasses)
+            }
+    }
+
+    suspend fun getWaterGlassesSuspend(date: String): List<WaterGlass> =
+        suspendCancellableCoroutine { continuation ->
+            getWaterGlasses(date) { glasses ->
+                continuation.resume(glasses)
+            }
+        }
 }

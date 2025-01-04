@@ -47,6 +47,7 @@ fun HomeScreen(
     authViewModel: AuthenticationViewModel,
     toGoalsSettings: () -> Unit,
     onLogOutSuccess: () -> Unit,
+    toWaterScreen: () -> Unit,
 ) {
     val healthData by viewModel.healthData.collectAsState()
     val permissionsGranted by viewModel.permissionsGranted.collectAsState()
@@ -94,6 +95,17 @@ fun HomeScreen(
                         Text("Add Test Data")
                     }
                 //}
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Button(
+                    onClick = { toWaterScreen() },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ){
+                    Text("Water tracking")
+                }
 
                 HealthDataDisplay(healthData)
             }

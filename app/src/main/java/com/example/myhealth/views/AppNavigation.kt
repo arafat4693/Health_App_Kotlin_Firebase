@@ -12,6 +12,7 @@ sealed class Screen(val route: String) {
     object Register : Screen("register")
     object Home : Screen("home")
     object Goals : Screen("goals")
+    object water : Screen("water")
 }
 
 @Composable
@@ -42,11 +43,20 @@ fun AppNavigation(viewModel: AuthenticationViewModel) {
             )
         }
         composable(Screen.Home.route) {
-            HomeScreen(authViewModel = viewModel, toGoalsSettings = { navController.navigate(Screen.Goals.route) }, onLogOutSuccess = { navController.navigate(Screen.Login.route) { popUpTo(0) { inclusive = true } } })
+            HomeScreen(
+                authViewModel = viewModel,
+                toGoalsSettings = { navController.navigate(Screen.Goals.route) },
+                onLogOutSuccess = { navController.navigate(Screen.Login.route) { popUpTo(0) { inclusive = true } } },
+                toWaterScreen = { navController.navigate(Screen.water.route) }
+            )
         }
 
         composable(Screen.Goals.route) {
             GoalsSettingsScreen(onNavigateBack = { navController.navigate(Screen.Home.route) })
+        }
+
+        composable(Screen.water.route) {
+            WaterTrackingScreen(onNavigateBack = { navController.navigate(Screen.Home.route) })
         }
     }
 }
